@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from app.config import OPENAI_API_KEY
 from app.schemas.chat import (
     ChatHistoryResponse,
     ChatRequest,
@@ -20,6 +21,9 @@ async def health_check():
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(payload: ChatRequest):
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
+
     session_id = ensure_thread_id(payload.session_id, payload.user_id)
     reply = generate_chat_response(
         session_id=session_id,
