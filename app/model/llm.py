@@ -9,6 +9,7 @@ from langchain_openai import ChatOpenAI
 from pymongo import MongoClient
 from pymongo.collection import Collection
 import certifi
+import logging
 
 from app.config import (
     OPENAI_API_KEY,
@@ -21,12 +22,13 @@ from app.config import (
 from app.utils.prompt import SYSTEM_PROMPT
 
 
+logger = logging.getLogger(__name__)
 memory_store: Dict[str, InMemoryChatMessageHistory] = {}
 MAX_CONTEXT_MESSAGES = 5
 
-mongo_client = MongoClient(MONGODB_URI, tlsCAFile=certifi.where())
-mongo_db = mongo_client[MONGODB_DB_NAME]
-chat_sessions: Collection = mongo_db[MONGODB_COLLECTION]
+mongo_client: MongoClient | None = None
+chat_sessions: Collection | None = None
+mongo_connection_failed = False
 
 
 prompt = ChatPromptTemplate.from_messages(
@@ -45,6 +47,29 @@ def _base_chain():
         temperature=TEMPERATURE,
     )
     return prompt | llm
+
+
+def _get_chat_sessions() -> Collection | None:
+    global mongo_client, chat_sessions, mongo_connection_failed
+
+    if chat_sessions is not None:
+        return chat_sessions
+    if mongo_connection_failed:
+        return None
+
+    try:
+        mongo_client = MongoClient(
+            MONGODB_URI,
+            tlsCAFile=certifi.where(),
+            serverSelectionTimeoutMS=3000,
+        )
+        mongo_db = mongo_client[MONGODB_DB_NAME]
+        chat_sessions = mongo_db[MONGODB_COLLECTION]
+        return chat_sessions
+    except Exception as exc:
+        mongo_connection_failed = True
+        logger.warning("MongoDB is unavailable; chat history will use memory only: %s", exc)
+        return None
 
 
 def _ensure_thread(thread_id: str) -> None:
@@ -83,7 +108,10 @@ def append_history(thread_id: str, role: str, content: str) -> None:
     _create_session_if_missing(thread_id)
     memory_store[thread_id].add_message(to_message(role, content))
     _trim_memory(memory_store[thread_id])
-    chat_sessions.update_one(
+    collection = _get_chat_sessions()
+    if collection is None:
+        return
+    collection.update_one(
         {"session_id": thread_id},
         {"$push": {"history": {"role": role, "content": content}}},
         upsert=False,
@@ -104,7 +132,10 @@ def _get_memory(_: dict, *, thread_id: str) -> InMemoryChatMessageHistory:
 
 
 def _create_session_if_missing(thread_id: str, user_id: str | None = None) -> None:
-    chat_sessions.update_one(
+    collection = _get_chat_sessions()
+    if collection is None:
+        return
+    collection.update_one(
         {"session_id": thread_id},
         {
             "$setOnInsert": {
@@ -118,7 +149,10 @@ def _create_session_if_missing(thread_id: str, user_id: str | None = None) -> No
 
 
 def _load_history_from_db(thread_id: str) -> List[dict[str, str]]:
-    record = chat_sessions.find_one(
+    collection = _get_chat_sessions()
+    if collection is None:
+        return []
+    record = collection.find_one(
         {"session_id": thread_id},
         projection={"_id": 0, "history": 1},
     )
@@ -126,7 +160,10 @@ def _load_history_from_db(thread_id: str) -> List[dict[str, str]]:
 
 
 def get_session_id_for_user(user_id: str) -> str | None:
-    record = chat_sessions.find_one(
+    collection = _get_chat_sessions()
+    if collection is None:
+        return None
+    record = collection.find_one(
         {"user_id": user_id},
         projection={"_id": 0, "session_id": 1},
     )
