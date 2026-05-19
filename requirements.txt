@@ -1,0 +1,16 @@
+
+fastapi
+uvicorn
+pydantic
+pydantic-settings
+pymongo
+langchain
+langchain-openai
+python-dotenv
+httpx
+aiohttp
+python-dateutil
+redis
+openai
+langchain-core
+langchain-community

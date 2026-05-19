@@ -1,0 +1,71 @@
+{
+  "total_users": 3,
+  "successful": 3,
+  "failed": 0,
+  "results": [
+    {
+      "user_id": 1001,
+      "ai_summary": "Your training demonstrates a well-structured approach with 82% of volume dedicated to aerobic development, supporting sustainable fitness gains. Weekly mileage averages 46.0 km with peak weeks reaching 54.0 km, indicating disciplined periodization and progression management. Recovery protocols are effectively integrated, as evidenced by your heart rate drift patterns and consistent long run execution. This balanced methodology positions your training for continued performance improvement while maintaining injury prevention standards.",
+      "performance_grades": {
+        "volume": {
+          "description": "Well-managed peak volume"
+        },
+        "frequency": {
+          "description": "Average 0.7 runs per week, Moderate consistency"
+        },
+        "intensity": {
+          "description": "82% easy running - Highly aerobic"
+        },
+        "recovery": {
+          "description": "Excellent recovery with 4 long runs"
+        },
+        "progression": {
+          "description": "Safe 8.0% weekly increase, well-structured"
+        }
+      }
+    },
+    {
+      "user_id": 1002,
+      "ai_summary": "Your training demonstrates a well-structured approach with 75% of volume dedicated to aerobic development, supporting sustainable fitness gains. Weekly mileage averages 52.0 km with peak weeks reaching 60.0 km, indicating disciplined periodization and progression management. Recovery protocols are effectively integrated, as evidenced by your heart rate drift patterns and consistent long run execution. This balanced methodology positions your training for continued performance improvement while maintaining injury prevention standards.",
+      "performance_grades": {
+        "volume": {
+          "description": "Well-managed peak volume"
+        },
+        "frequency": {
+          "description": "Average 0.8 runs per week, Moderate consistency"
+        },
+        "intensity": {
+          "description": "75% easy running - Well-balanced"
+        },
+        "recovery": {
+          "description": "Generally good recovery with 5 long runs"
+        },
+        "progression": {
+          "description": "Safe 9.0% weekly increase, well-structured"
+        }
+      }
+    },
+    {
+      "user_id": 1003,
+      "ai_summary": "Your training demonstrates a well-structured approach with 88% of volume dedicated to aerobic development, supporting sustainable fitness gains. Weekly mileage averages 40.0 km with peak weeks reaching 48.0 km, indicating disciplined periodization and progression management. Recovery protocols are effectively integrated, as evidenced by your heart rate drift patterns and consistent long run execution. This balanced methodology positions your training for continued performance improvement while maintaining injury prevention standards.",
+      "performance_grades": {
+        "volume": {
+          "description": "Well-managed peak volume"
+        },
+        "frequency": {
+          "description": "Average 0.6 runs per week, Moderate consistency"
+        },
+        "intensity": {
+          "description": "88% easy running - Highly aerobic"
+        },
+        "recovery": {
+          "description": "Excellent recovery with 3 long runs"
+        },
+        "progression": {
+          "description": "Safe 6.0% weekly increase, well-structured"
+        }
+      }
+    }
+  ],
+  "errors": null
+}

@@ -1,0 +1,166 @@
+{
+  "analysis_period": {
+    "weeks": 12
+  },
+
+  "zone_configuration": {
+    "heart_rate_bpm": {
+      "zone_1_recovery": { "min": 100, "max": 130 },
+      "zone_2_aerobic": { "min": 130, "max": 150 },
+      "zone_3_tempo": { "min": 150, "max": 165 },
+      "zone_4_threshold": { "min": 165, "max": 180 },
+      "zone_5_max": { "min": 180, "max": 200 }
+    },
+    "power_watts": {
+      "zone_1_active_recovery": { "min": 0, "max": 200 },
+      "zone_2_endurance": { "min": 200, "max": 240 },
+      "zone_3_tempo": { "min": 240, "max": 270 },
+      "zone_4_threshold": { "min": 270, "max": 300 },
+      "zone_5_vo2_max": { "min": 300, "max": 400 }
+    },
+    "pace_min_per_km": {
+      "recovery": { "min": "6:00", "max": "7:00" },
+      "easy": { "min": "5:30", "max": "6:00" },
+      "tempo": { "min": "4:30", "max": "5:30" },
+      "threshold": { "min": "4:00", "max": "4:30" },
+      "interval_vo2": { "min": "3:30", "max": "4:00" }
+    }
+  },
+
+  "computed_training_metrics": {
+    "heart_rate_zone_distribution_percent": {
+      "zone_1": 18,
+      "zone_2": 42,
+      "zone_3": 20,
+      "zone_4": 15,
+      "zone_5": 5
+    },
+    "power_zone_distribution_percent": {
+      "zone_1": 25,
+      "zone_2": 40,
+      "zone_3": 20,
+      "zone_4": 10,
+      "zone_5": 5
+    },
+    "pace_zone_distribution_percent": {
+      "easy_recovery": 85,
+      "tempo": 12,
+      "hard": 3
+    }
+  },
+
+  "run_duration_tracking": {
+    "less_than_30_min": 2,
+    "between_45_and_60_min": 3,
+    "between_60_and_90_min": 1,
+    "above_90_min": 1
+  },
+
+  "weekly_progression": {
+    "average_weekly_distance_km": 48,
+    "peak_weekly_distance_km": 55,
+    "max_weekly_increase_percent": 9
+  },
+
+  "long_run_summary": {
+    "count": 4,
+    "max_duration_minutes": 105
+  },
+
+  "efficiency_indicators": {
+    "pace_efficiency_change_percent": 8,
+    "heart_rate_drift": "low"
+  },
+
+  "training_context": {
+    "zone_configuration": {
+      "heart_rate_bpm": {
+        "zone_1_recovery": { "min": 100, "max": 130 },
+        "zone_2_aerobic": { "min": 130, "max": 150 },
+        "zone_3_tempo": { "min": 150, "max": 165 },
+        "zone_4_threshold": { "min": 165, "max": 180 },
+        "zone_5_max": { "min": 180, "max": 200 }
+      },
+      "power_watts": {
+        "zone_1_active_recovery": { "min": 0, "max": 200 },
+        "zone_2_endurance": { "min": 200, "max": 240 },
+        "zone_3_tempo": { "min": 240, "max": 270 },
+        "zone_4_threshold": { "min": 270, "max": 300 },
+        "zone_5_vo2_max": { "min": 300, "max": 400 }
+      },
+      "pace_min_per_km": {
+        "recovery": { "min": "6:00", "max": "7:00" },
+        "easy": { "min": "5:30", "max": "6:00" },
+        "tempo": { "min": "4:30", "max": "5:30" },
+        "threshold": { "min": "4:00", "max": "4:30" },
+        "interval_vo2": { "min": "3:30", "max": "4:00" }
+      }
+    },
+    "computed_training_metrics": {
+      "heart_rate_zone_distribution_percent": {
+        "zone_1": 18,
+        "zone_2": 42,
+        "zone_3": 20,
+        "zone_4": 15,
+        "zone_5": 5
+      },
+      "power_zone_distribution_percent": {
+        "zone_1": 25,
+        "zone_2": 40,
+        "zone_3": 20,
+        "zone_4": 10,
+        "zone_5": 5
+      },
+      "pace_zone_distribution_percent": {
+        "easy_recovery": 85,
+        "tempo": 12,
+        "hard": 3
+      }
+    },
+    "run_duration_tracking": {
+      "less_than_30_min": 2,
+      "between_45_and_60_min": 3,
+      "between_60_and_90_min": 1,
+      "above_90_min": 1
+    },
+    "weekly_progression": {
+      "average_weekly_distance_km": 48,
+      "peak_weekly_distance_km": 55,
+      "max_weekly_increase_percent": 9
+    },
+    "long_run_summary": {
+      "count": 4,
+      "max_duration_minutes": 105
+    },
+    "efficiency_indicators": {
+      "pace_efficiency_change_percent": 8,
+      "heart_rate_drift": "low"
+    }
+  },
+
+  "personal_info": {
+    "full_name": "Sarah Johnson",
+    "email": "sarah.johnson@email.com",
+    "age": 32,
+    "gender": "Female",
+    "preferred_units": "Metric (km, kg)"
+  },
+
+  "heart_rate_zones": {
+    "max_hr_bpm": 190,
+    "resting_hr_bpm": 48,
+    "threshold_hr_bpm": 175,
+    "ai_zone_prediction": "Based on your age (32), we estimate your zones as: Zone 1: 95-114 bpm | Zone 2: 114-133 bpm | Zone 3: 133-152 bpm | Zone 4: 152-171 bpm | Zone 5: 171-190 bpm"
+  },
+
+  "performance_metrics": {
+    "threshold_pace_min_per_km": "4:15",
+    "ftp_watts": 285
+  },
+
+  "personal_bests": [
+    {"distance": "5K", "time": "19:45", "date": "2024-04-02"},
+    {"distance": "10K", "time": "41:30", "date": "2024-05-18"},
+    {"distance": "Half Marathon", "time": "1:32:18", "date": "2024-07-10"}
+  ]
+}

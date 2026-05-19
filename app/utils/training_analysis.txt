@@ -1,0 +1,13 @@
+Training Insights: {plan_title}
+Timeframe: {timeframe}
+
+Summary:
+{narrative}
+
+Headline Metrics:
+- Easy Running: {easy_running_pct}%
+- Weekly Growth: {weekly_growth_pct}%
+- Training Performance: {training_performance_score}%
+
+Key Achievements:
+{achievements_bullets}

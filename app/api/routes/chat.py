@@ -1,0 +1,34 @@
+from fastapi import APIRouter
+from app.schemas.chat import (
+    ChatHistoryResponse,
+    ChatRequest,
+    ChatResponse,
+)
+from app.services.chat_service import (
+    ensure_thread_id,
+    generate_chat_response,
+    fetch_history,
+)
+
+router = APIRouter()
+
+
+@router.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+
+@router.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(payload: ChatRequest):
+    session_id = ensure_thread_id(payload.session_id, payload.user_id)
+    reply = generate_chat_response(
+        session_id=session_id,
+        user_message=payload.message
+    )
+    return {"session_id": session_id, "response": reply}
+
+
+@router.get("/chat/history/{session_id}", response_model=ChatHistoryResponse)
+async def chat_history(session_id: str):
+    history = fetch_history(session_id)
+    return {"session_id": session_id, "history": history}
