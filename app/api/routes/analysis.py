@@ -33,6 +33,7 @@ from app.schemas.improvement_plan import (
 )
 from app.services.metrics_engine import compute_metrics, build_achievements
 from app.services.openai_service import render_analysis_text
+from app.services.analysis_cache_service import analysis_cache_service
 from app.config import OPENAI_API_KEY, MODEL_NAME
 from app.utils.prompt import (
     RACE_ANALYSIS_SYSTEM_PROMPT,
@@ -47,7 +48,15 @@ router = APIRouter()
 
 @router.post("/training/analysis", response_model=TrainingAnalysisResponse)
 async def get_training_analysis(payload: TrainingData):
-    data = payload.model_dump()
+    data = payload.model_dump(mode="json")
+    cached = analysis_cache_service.get_cached_response(
+        user_id=payload.user_id,
+        cache_type="training_analysis",
+        request_payload=data,
+    )
+    if cached:
+        return TrainingAnalysisResponse(**cached)
+
     metrics = compute_metrics(data)
     achievements_raw = build_achievements(data, metrics)
 
@@ -83,12 +92,19 @@ async def get_training_analysis(payload: TrainingData):
         for item in achievements_raw
     ]
 
-    return TrainingAnalysisResponse(
+    response = TrainingAnalysisResponse(
         plan_title=plan_title,
         timeframe=timeframe,
         summary=summary,
         achievements=achievements,
     )
+    analysis_cache_service.store_response(
+        user_id=payload.user_id,
+        cache_type="training_analysis",
+        request_payload=data,
+        response_data=response.model_dump(mode="json"),
+    )
+    return response
 
 
 def _find_prediction(predictions: list, distance: str, default_time: str) -> str:
@@ -123,6 +139,15 @@ def _parse_json_content(content: str) -> dict:
 
 @router.post("/ai/race-analysis", response_model=RaceAnalysisResponse)
 async def ai_race_analysis(payload: RaceAnalysisRequest):
+    request_payload = payload.model_dump(mode="json")
+    cached = analysis_cache_service.get_cached_response(
+        user_id=payload.user_id,
+        cache_type="race_analysis",
+        request_payload=request_payload,
+    )
+    if cached:
+        return RaceAnalysisResponse(**cached)
+
     if not OPENAI_API_KEY:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
 
@@ -182,11 +207,26 @@ async def ai_race_analysis(payload: RaceAnalysisRequest):
         race_result=race_result,
         performance_predictions=performance_predictions,
     )
+    analysis_cache_service.store_response(
+        user_id=payload.user_id,
+        cache_type="race_analysis",
+        request_payload=request_payload,
+        response_data=response.model_dump(mode="json"),
+    )
     return response
 
 
 @router.post("/ai/training-insights", response_model=TrainingInsightsResponse)
 async def ai_training_insights(payload: TrainingInsightsRequest):
+    request_payload = payload.model_dump(mode="json")
+    cached = analysis_cache_service.get_cached_response(
+        user_id=payload.user_id,
+        cache_type="training_insights",
+        request_payload=request_payload,
+    )
+    if cached:
+        return TrainingInsightsResponse(**cached)
+
     if not OPENAI_API_KEY:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
 
@@ -267,14 +307,30 @@ async def ai_training_insights(payload: TrainingInsightsRequest):
                 )
             )
 
-    return TrainingInsightsResponse(
+    response = TrainingInsightsResponse(
         strengths=strengths,
         achievements=achievements,
     )
+    analysis_cache_service.store_response(
+        user_id=payload.user_id,
+        cache_type="training_insights",
+        request_payload=request_payload,
+        response_data=response.model_dump(mode="json"),
+    )
+    return response
 
 
 @router.post("/ai/improvement-plan", response_model=ImprovementPlanResponse)
 async def ai_improvement_plan(payload: ImprovementPlanRequest):
+    request_payload = payload.model_dump(mode="json")
+    cached = analysis_cache_service.get_cached_response(
+        user_id=payload.user_id,
+        cache_type="improvement_plan",
+        request_payload=request_payload,
+    )
+    if cached:
+        return ImprovementPlanResponse(**cached)
+
     if not OPENAI_API_KEY:
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
 
@@ -368,11 +424,18 @@ async def ai_improvement_plan(payload: ImprovementPlanRequest):
             )
         )
 
-    return ImprovementPlanResponse(
+    response = ImprovementPlanResponse(
         optimal_distribution=optimal,
         areas_for_improvement=areas,
         next_steps=goals,
     )
+    analysis_cache_service.store_response(
+        user_id=payload.user_id,
+        cache_type="improvement_plan",
+        request_payload=request_payload,
+        response_data=response.model_dump(mode="json"),
+    )
+    return response
 
 
 def _coerce_insight(item: dict) -> TrainingInsight | None:

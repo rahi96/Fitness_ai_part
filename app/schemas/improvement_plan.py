@@ -32,6 +32,7 @@ class OptimalDistribution(BaseModel):
 
 
 class ImprovementPlanRequest(BaseModel):
+    user_id: str | int = Field(default="demo-user")
     athlete_profile: Dict[str, Any] = Field(default_factory=lambda: _DEFAULTS.get("athlete_profile", {}))
     training_summary: Dict[str, Any] = Field(default_factory=lambda: _DEFAULTS.get("training_summary", {}))
     race_analysis: Dict[str, Any] = Field(default_factory=lambda: _DEFAULTS.get("race_analysis", {}))
@@ -42,6 +43,7 @@ class ImprovementPlanRequest(BaseModel):
         "extra": "allow",  # ignore unknown keys like optimal_distribution in requests
         "json_schema_extra": {
             "example": {
+                "user_id": "demo-user",
                 "athlete_profile": _DEFAULTS.get("athlete_profile", {}),
                 "training_summary": _DEFAULTS.get("training_summary", {}),
                 "race_analysis": _DEFAULTS.get("race_analysis", {}),

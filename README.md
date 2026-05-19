@@ -268,6 +268,7 @@ ghcr.io/<owner>/<repository>
 ## Development Notes
 
 - The chat service stores conversation history in MongoDB.
+- Training analysis routes cache response payloads in MongoDB by `user_id`, route type, and request hash.
 - Some analysis endpoints are deterministic and do not call OpenAI.
 - AI endpoints require `OPENAI_API_KEY`.
 - `dummy_data.json` and `data.json` provide sample training payloads for local experiments.

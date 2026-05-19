@@ -56,6 +56,7 @@ def _default_training_context() -> Dict[str, Any]:
 
 
 class RaceAnalysisRequest(BaseModel):
+    user_id: str | int = Field(default="demo-user")
     athlete_profile: Dict[str, Any] = Field(
         default_factory=lambda: {
             "age": _DEFAULTS.get("personal_info", {}).get("age", 32),
@@ -107,6 +108,7 @@ class RaceAnalysisRequest(BaseModel):
         "extra": "forbid",
         "json_schema_extra": {
             "example": {
+                "user_id": "demo-user",
                 "athlete_profile": {
                     "age": 32,
                     "gender": "female",
