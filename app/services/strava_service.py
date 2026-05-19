@@ -1,7 +1,13 @@
-<<<<<<< HEAD
 import json
+import aiohttp
+import logging
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List, Optional, Tuple
+from datetime import datetime, timedelta
+
+from app.utils.database import MongoDBManager
+
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_DATA_PATH = Path(__file__).resolve().parents[2] / "dummy_data.json"
@@ -14,16 +20,6 @@ def load_training_data(path: Path | None = None) -> Dict[str, Any]:
         raise FileNotFoundError(f"Training data file not found: {data_path}")
     with data_path.open("r", encoding="utf-8") as f:
         return json.load(f)
-=======
-import aiohttp
-import logging
-from typing import List, Optional, Tuple
-from datetime import datetime, timedelta
-import json
-from app.schemas.strava import StravaActivity
-from app.utils.database import MongoDBManager
-
-logger = logging.getLogger(__name__)
 
 
 class StravaService:
@@ -186,4 +182,3 @@ class StravaService:
         """Get activities for a user from MongoDB"""
         from_date = datetime.utcnow() - timedelta(days=days_back)
         return await self.db.get_strava_activities(user_id, from_date, activity_type)
->>>>>>> 7abfee0b1acd47788cb75d77765f57f45bcc0c73

@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from pymongo.collection import Collection
-from app.config import settings
+from app.config import MONGODB_COLLECTION, MONGODB_DB_NAME, MONGODB_URI
 from typing import Optional, List, Dict
 from datetime import datetime
 import logging
@@ -18,11 +18,11 @@ class MongoDBManager:
     def connect(self):
         """Connect to MongoDB"""
         try:
-            self.client = MongoClient(settings.MONGODB_URL)
+            self.client = MongoClient(MONGODB_URI)
             # Test connection
             self.client.admin.command('ping')
-            self.db = self.client[settings.MONGODB_DB_NAME]
-            self.collection = self.db[settings.MONGODB_COLLECTION_NAME]
+            self.db = self.client[MONGODB_DB_NAME]
+            self.collection = self.db[MONGODB_COLLECTION]
             
             # Create compound index on user_id and session_id for faster lookups
             self.collection.create_index([("user_id", 1), ("session_id", 1)], unique=False)

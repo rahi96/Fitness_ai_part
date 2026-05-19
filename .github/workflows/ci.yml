@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
+
+permissions:
+  contents: read
+
+jobs:
+  python:
+    name: Python checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Check for merge conflict markers
+        run: |
+          ! grep -R -n -E '^(<<<<<<<|=======|>>>>>>>)' --exclude-dir=.git --exclude-dir=venv .
+
+      - name: Compile Python files
+        run: python -m compileall app main.py
+
+      - name: Smoke import FastAPI app
+        env:
+          OPENAI_API_KEY: test-key
+          MONGODB_URI: mongodb://localhost:27017
+          MONGODB_DB_NAME: chatbot
+          MONGODB_COLLECTION: chat_sessions
+        run: python -c "from app.main import app; print(app.title)"
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: python
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t lionscull-fitness-ai:${{ github.sha }} .
