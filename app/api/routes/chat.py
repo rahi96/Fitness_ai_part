@@ -25,10 +25,17 @@ async def chat_endpoint(payload: ChatRequest):
         raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
 
     session_id = ensure_thread_id(payload.session_id, payload.user_id)
-    reply = generate_chat_response(
-        session_id=session_id,
-        user_message=payload.message
-    )
+    try:
+        reply = generate_chat_response(
+            session_id=session_id,
+            user_message=payload.message
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=502,
+            detail=f"OpenAI chat request failed: {exc}",
+        ) from exc
+
     return {"session_id": session_id, "response": reply}
 
 
