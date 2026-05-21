@@ -56,7 +56,7 @@ def _default_training_context() -> Dict[str, Any]:
 
 
 class RaceAnalysisRequest(BaseModel):
-    user_id: str | int = Field(default="demo-user")
+    user_id: str | int = Field(..., description="User identifier used for MongoDB response caching")
     athlete_profile: Dict[str, Any] = Field(
         default_factory=lambda: {
             "age": _DEFAULTS.get("personal_info", {}).get("age", 32),

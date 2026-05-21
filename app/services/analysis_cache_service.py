@@ -8,12 +8,14 @@ import certifi
 from pymongo import MongoClient
 from pymongo.collection import Collection
 
-from app.config import MONGODB_DB_NAME, MONGODB_URI
+from app.config import (
+    ANALYSIS_CACHE_COLLECTION,
+    ANALYSIS_CACHE_DB_NAME,
+    ANALYSIS_CACHE_MONGODB_URI,
+)
 
 
 logger = logging.getLogger(__name__)
-
-ANALYSIS_CACHE_COLLECTION = "training_analysis_cache"
 
 
 class AnalysisCacheService:
@@ -91,11 +93,11 @@ class AnalysisCacheService:
 
         try:
             self.client = MongoClient(
-                MONGODB_URI,
-                tlsCAFile=certifi.where(),
+                ANALYSIS_CACHE_MONGODB_URI,
                 serverSelectionTimeoutMS=3000,
+                **self._tls_kwargs(ANALYSIS_CACHE_MONGODB_URI),
             )
-            db = self.client[MONGODB_DB_NAME]
+            db = self.client[ANALYSIS_CACHE_DB_NAME]
             self.collection = db[ANALYSIS_CACHE_COLLECTION]
             self.collection.create_index(
                 [("user_id", 1), ("cache_type", 1), ("request_hash", 1)],
@@ -114,6 +116,12 @@ class AnalysisCacheService:
         }
         serialized = json.dumps(payload_without_user, sort_keys=True, default=str)
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _tls_kwargs(uri: str) -> dict[str, str]:
+        if uri.startswith("mongodb+srv://") or "tls=true" in uri.lower():
+            return {"tlsCAFile": certifi.where()}
+        return {}
 
 
 analysis_cache_service = AnalysisCacheService()

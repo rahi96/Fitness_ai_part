@@ -32,7 +32,7 @@ class OptimalDistribution(BaseModel):
 
 
 class ImprovementPlanRequest(BaseModel):
-    user_id: str | int = Field(default="demo-user")
+    user_id: str | int = Field(..., description="User identifier used for MongoDB response caching")
     athlete_profile: Dict[str, Any] = Field(default_factory=lambda: _DEFAULTS.get("athlete_profile", {}))
     training_summary: Dict[str, Any] = Field(default_factory=lambda: _DEFAULTS.get("training_summary", {}))
     race_analysis: Dict[str, Any] = Field(default_factory=lambda: _DEFAULTS.get("race_analysis", {}))

@@ -22,7 +22,7 @@ def _default_section(key: str) -> Dict[str, Any]:
 
 
 class TrainingData(BaseModel):
-    user_id: str | int = Field(default="demo-user")
+    user_id: str | int = Field(..., description="User identifier used for MongoDB response caching")
     analysis_period: Dict[str, Any] = Field(default_factory=lambda: _default_section("analysis_period"))
     zone_configuration: Dict[str, Any] = Field(default_factory=lambda: _default_section("zone_configuration"))
     computed_training_metrics: Dict[str, Any] = Field(default_factory=lambda: _default_section("computed_training_metrics"))

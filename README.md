@@ -103,9 +103,14 @@ OPENAI_API_KEY=your_openai_api_key
 MONGODB_URI=mongodb://localhost:27017
 MONGODB_DB_NAME=chatbot
 MONGODB_COLLECTION=chat_sessions
+ANALYSIS_CACHE_MONGODB_URI=mongodb://localhost:27017
+ANALYSIS_CACHE_DB_NAME=chatbot
+ANALYSIS_CACHE_COLLECTION=training_analysis_cache
 ```
 
 `MONGO_URI` is also supported as a MongoDB URI fallback.
+
+The analysis cache uses `ANALYSIS_CACHE_MONGODB_URI` and defaults to local MongoDB. Chat history can use a separate `MONGODB_URI` or `MONGO_URI`.
 
 For local smoke testing without real AI calls, you can use a placeholder `OPENAI_API_KEY`, but endpoints that call OpenAI need a valid key.
 
@@ -195,6 +200,7 @@ OPENAI_API_KEY=your_openai_api_key
 MONGODB_URI=your_valid_mongodb_connection_string
 MONGODB_DB_NAME=chatbot
 MONGODB_COLLECTION=chat_sessions
+ANALYSIS_CACHE_MONGODB_URI=your_valid_cache_mongodb_connection_string
 ```
 
 If you use MongoDB Atlas, copy the connection string from the active cluster. A deleted, paused, renamed, or mistyped Atlas host will cause DNS errors like:
@@ -268,7 +274,7 @@ ghcr.io/<owner>/<repository>
 ## Development Notes
 
 - The chat service stores conversation history in MongoDB.
-- Training analysis routes cache response payloads in MongoDB by `user_id`, route type, and request hash.
+- Training analysis routes require `user_id` in the request body and cache response payloads in MongoDB by `user_id`, route type, and request hash.
 - Some analysis endpoints are deterministic and do not call OpenAI.
 - AI endpoints require `OPENAI_API_KEY`.
 - `dummy_data.json` and `data.json` provide sample training payloads for local experiments.
