@@ -323,7 +323,7 @@ class TestErrorHandling:
 
     def test_missing_required_fields(self, client):
         """Test endpoints with incomplete payload."""
-        incomplete_payload = {"user_id": 1}
+        incomplete_payload = {"user_id": "1"}
         response = client.post("/api/v1/overview/performance-grades", json=incomplete_payload)
         assert response.status_code == 422
 

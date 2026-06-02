@@ -71,7 +71,7 @@ class AnalysisPeriod(BaseModel):
 
 class UserTrainingData(BaseModel):
     """Complete user training data from dataset"""
-    user_id: int
+    user_id: str
     analysis_period: AnalysisPeriod
     computed_training_metrics: ComputedTrainingMetrics
     run_duration_tracking: RunDurationTracking
@@ -135,14 +135,14 @@ class PerformanceGrades(BaseModel):
 
 class AnalysisResponse(BaseModel):
     """Response with performance analysis"""
-    user_id: int
+    user_id: str
     ai_summary: str
     performance_grades: PerformanceGrades
 
 
 class AnalysisRequest(BaseModel):
     """Request to analyze user data - accepts full training data"""
-    user_id: int
+    user_id: str
     analysis_period: AnalysisPeriod
     computed_training_metrics: ComputedTrainingMetrics
     run_duration_tracking: RunDurationTracking
@@ -162,4 +162,4 @@ class BatchAnalysisResponse(BaseModel):
     successful: int = Field(..., description="Number of successful analyses")
     failed: int = Field(..., description="Number of failed analyses")
     results: List[AnalysisResponse] = Field(..., description="Analysis results for each user")
-    errors: Optional[Dict[int, str]] = Field(None, description="Errors by user_id if any failed")
+    errors: Optional[Dict[str, str]] = Field(None, description="Errors by user_id if any failed")

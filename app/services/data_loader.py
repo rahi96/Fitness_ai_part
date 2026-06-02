@@ -39,18 +39,18 @@ class DataLoader:
             logger.error(f"Invalid data structure: {e}")
             raise
     
-    def get_user_data(self, user_id: int) -> Optional[UserTrainingData]:
+    def get_user_data(self, user_id: str | int) -> Optional[UserTrainingData]:
         """Get training data for a specific user"""
         all_data = self.load_all_data()
         for user_data in all_data:
-            if user_data.user_id == user_id:
+            if user_data.user_id == str(user_id):
                 logger.info(f"Found data for user {user_id}")
                 return user_data
         
         logger.warning(f"No data found for user {user_id}")
         return None
     
-    def get_all_user_ids(self) -> List[int]:
+    def get_all_user_ids(self) -> List[str]:
         """Get list of all available user IDs"""
         all_data = self.load_all_data()
         return [user_data.user_id for user_data in all_data]

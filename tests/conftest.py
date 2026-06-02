@@ -13,7 +13,7 @@ def client():
 def sample_analysis_request():
     """Provide a sample AnalysisRequest payload for testing."""
     return {
-        "user_id": 1,
+        "user_id": "1",
         "analysis_period": {"weeks": 8},
         "computed_training_metrics": {
             "heart_rate_zone_distribution_percent": {
@@ -59,7 +59,7 @@ def sample_analysis_request():
 def high_volume_request():
     """Provide a high-volume training request."""
     return {
-        "user_id": 2,
+        "user_id": "2",
         "analysis_period": {"weeks": 12},
         "computed_training_metrics": {
             "heart_rate_zone_distribution_percent": {
@@ -105,7 +105,7 @@ def high_volume_request():
 def low_volume_request():
     """Provide a low-volume training request."""
     return {
-        "user_id": 3,
+        "user_id": "3",
         "analysis_period": {"weeks": 4},
         "computed_training_metrics": {
             "heart_rate_zone_distribution_percent": {
