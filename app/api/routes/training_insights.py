@@ -45,6 +45,59 @@ async def optimal_pace_distribution(payload: AnalysisRequest):
     return {"title": "Optimal Pace Distribution", "narrative": narrative, "distribution": {"easy": easy_pct, "tempo": tempo_pct, "hard": hard_pct}}
 
 
+@router.post("/pace-distribution-raw")
+async def pace_distribution_raw(payload: AnalysisRequest):
+    """Return raw pace zone distribution data for the athlete."""
+    try:
+        data: Dict[str, Any] = payload.model_dump(mode="json")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid payload: {exc}")
+
+    pace = data.get("computed_training_metrics", {}).get("pace_zone_distribution_percent", {}) or {}
+    return {"pace_zone_distribution_percent": pace}
+
+
+@router.post("/pace-recommendations")
+async def pace_recommendations(payload: AnalysisRequest):
+    """Offer targeted pace distribution recommendations based on current data."""
+    try:
+        data: Dict[str, Any] = payload.model_dump(mode="json")
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"Invalid payload: {exc}")
+
+    pace = data.get("computed_training_metrics", {}).get("pace_zone_distribution_percent", {}) or {}
+    easy = float(pace.get("easy_recovery", 0))
+    tempo = float(pace.get("tempo", 0))
+    hard = float(pace.get("hard", 0))
+    total = easy + tempo + hard
+    if total > 0 and total != 100:
+        easy_pct = round((easy / total) * 100)
+        tempo_pct = round((tempo / total) * 100)
+        hard_pct = round((hard / total) * 100)
+    else:
+        easy_pct = int(easy)
+        tempo_pct = int(tempo)
+        hard_pct = int(hard)
+
+    recommendations = []
+    if easy_pct < 60:
+        recommendations.append("Increase easy running to support endurance and recovery.")
+    else:
+        recommendations.append("Keep your easy run volume high to maintain aerobic fitness.")
+
+    if tempo_pct < 20:
+        recommendations.append("Add a few tempo efforts to improve lactate threshold.")
+    else:
+        recommendations.append("Your tempo work looks well balanced for this phase.")
+
+    if hard_pct < 7:
+        recommendations.append("Include a short quality session to preserve top-end speed.")
+    else:
+        recommendations.append("Your hard sessions are providing enough stimulus for adaptation.")
+
+    return {"recommendations": recommendations}
+
+
 @router.post("/optimal-hr-distribution")
 async def optimal_hr_distribution(payload: AnalysisRequest):
     """Analyze heart rate zone distribution and return an AI-style summary.
