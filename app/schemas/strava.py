@@ -151,6 +151,62 @@ class AnalysisRequest(BaseModel):
     efficiency_indicators: EfficiencyIndicators
 
 
+class AverageWeeklyDistanceResponse(BaseModel):
+    """AI-style average weekly distance response"""
+    user_id: str
+    average_weekly_distance_km: float
+    peak_weekly_distance_km: float
+    max_weekly_increase_percent: float
+    zone_distribution: Dict[str, int]
+    narrative: str
+    recommendations: List[str]
+
+
+class WeeklyVolumeProgressionResponse(BaseModel):
+    """AI-style weekly volume progression response"""
+    user_id: str
+    average_weekly_distance_km: float
+    peak_weekly_distance_km: float
+    max_weekly_increase_percent: float
+    growth_descriptor: str
+    volume_summary: str
+    recommended_advice: List[str]
+
+
+class ProgressionAnalysisResponse(BaseModel):
+    """AI-style progression analysis response"""
+    user_id: str
+    weekly_growth_rate: str
+    consistency_days_per_week: float
+    recovery_weeks: int
+    progression_summary: str
+    recommendations: List[str]
+
+
+class HRImprovementMetric(BaseModel):
+    """Heart rate improvement metric"""
+    label: str
+    value: float
+    unit: str = "%"
+
+
+class HRImprovementInsight(BaseModel):
+    """Heart rate improvement insight"""
+    title: str
+    detail: str
+
+
+class ConsistentHRImprovementResponse(BaseModel):
+    """AI-analyzed consistent heart rate improvement response"""
+    user_id: str
+    improvement_summary: str
+    hr_efficiency_score: float
+    baseline_hr_zones: Dict[str, int]
+    improvement_metrics: List[HRImprovementMetric]
+    key_insights: List[HRImprovementInsight]
+    recommendations: List[str]
+
+
 class BatchAnalysisRequest(BaseModel):
     """Request to analyze multiple users at once"""
     users: List[AnalysisRequest] = Field(..., description="List of user training data to analyze")

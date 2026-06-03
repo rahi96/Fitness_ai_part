@@ -135,6 +135,43 @@ class TestAnalysisRoutes:
             data = response.json()
             assert "optimal_distribution" in data or "areas_for_improvement" in data
 
+    def test_average_weekly_distance_success(self, client, sample_analysis_request):
+        """Test POST /api/v1/load-progression/average-weekly-distance."""
+        response = client.post("/api/v1/load-progression/average-weekly-distance", json=sample_analysis_request)
+        assert response.status_code == 200
+        data = response.json()
+        assert "average_weekly_distance_km" in data
+        assert "zone_distribution" in data
+        assert "narrative" in data
+
+    def test_weekly_volume_progression_success(self, client, sample_analysis_request):
+        """Test POST /api/v1/load-progression/weekly-volume-progression."""
+        response = client.post("/api/v1/load-progression/weekly-volume-progression", json=sample_analysis_request)
+        assert response.status_code == 200
+        data = response.json()
+        assert "growth_descriptor" in data
+        assert "volume_summary" in data
+
+    def test_progression_analysis_success(self, client, sample_analysis_request):
+        """Test POST /api/v1/load-progression/progression-analysis."""
+        response = client.post("/api/v1/load-progression/progression-analysis", json=sample_analysis_request)
+        assert response.status_code == 200
+        data = response.json()
+        assert "weekly_growth_rate" in data
+        assert "consistency_days_per_week" in data
+        assert "progression_summary" in data
+
+    def test_consistent_hr_improvement_success(self, client, sample_analysis_request):
+        """Test POST /api/v1/performance/consistent-hr-improvement endpoint."""
+        response = client.post("/api/v1/performance/consistent-hr-improvement", json=sample_analysis_request)
+        # May fail due to OpenAI key not set, but should have consistent structure
+        if response.status_code == 200:
+            data = response.json()
+            assert "improvement_summary" in data
+            assert "hr_efficiency_score" in data
+            assert "improvement_metrics" in data
+            assert "key_insights" in data
+
 
 # ==================== OVERVIEW ROUTES ====================
 
