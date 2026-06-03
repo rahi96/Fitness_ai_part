@@ -11,6 +11,8 @@ Tests cover:
 
 import pytest
 
+from app.api.routes.analysis import _parse_json_content
+
 
 # ==================== CHAT ROUTES ====================
 
@@ -80,6 +82,12 @@ class TestAnalysisRoutes:
         assert response.status_code == 200
         data = response.json()
         assert "summary" in data
+
+    def test_parse_json_content_handles_code_fence(self):
+        raw = "```json\n{\"plan_title\":\"Test Plan\",\"timeframe\":\"8 weeks\",\"summary\":{\"headline\":\"Strong base\",\"narrative\":\"Steady adaptation shown.\",\"metrics\":[{\"label\":\"Consistency\",\"value\":75.0,\"unit\":\"%\"}]},\"achievements\":[{\"title\":\"Recovered well\",\"detail\":\"Maintained consistent weekly load without injury.\"}]}\n```"
+        parsed = _parse_json_content(raw)
+        assert parsed["plan_title"] == "Test Plan"
+        assert parsed["summary"]["headline"] == "Strong base"
 
     def test_race_analysis_success(self, client, sample_analysis_request):
         """Test POST /api/v1/ai/race-analysis endpoint."""

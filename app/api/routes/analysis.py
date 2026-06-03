@@ -71,6 +71,8 @@ async def get_training_analysis(payload: TrainingData):
         training_data=json.dumps(data, indent=2),
         metrics=json.dumps(metrics, indent=2),
         achievements=json.dumps(achievements_raw, indent=2),
+        plan_title=plan_title,
+        timeframe=timeframe,
     )
 
     if not OPENAI_API_KEY:
@@ -105,19 +107,41 @@ def _parse_json_content(content: str) -> dict:
         # If the model returns a list with a single dict, unwrap it.
         if len(content) == 1 and isinstance(content[0], dict):
             return content[0]
-        # Fall back to JSON dumping
         try:
             return json.loads(json.dumps(content))
         except Exception:
             pass
+
     cleaned = str(content).strip()
     if cleaned.startswith("```"):
         # Strip code fences like ```json ... ```
         cleaned = cleaned.strip("`")
-        # Remove optional leading "json" label
         if cleaned.startswith("json"):
-            cleaned = cleaned[len("json") :].strip()
-    return json.loads(cleaned)
+            cleaned = cleaned[len("json"):].strip()
+
+    # Try direct JSON parsing first.
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    # Attempt to recover a JSON object or list from wrapped text.
+    for opener, closer in (("{", "}"), ("[", "]")):
+        start = cleaned.find(opener)
+        end = cleaned.rfind(closer)
+        if start != -1 and end != -1 and end > start:
+            candidate = cleaned[start : end + 1]
+            try:
+                parsed = json.loads(candidate)
+                if isinstance(parsed, dict):
+                    return parsed
+                if isinstance(parsed, list) and len(parsed) == 1 and isinstance(parsed[0], dict):
+                    return parsed[0]
+                return parsed
+            except json.JSONDecodeError:
+                continue
+
+    return {}
 
 
 def _query_openai_response(system_prompt: str, user_prompt: str) -> dict:
