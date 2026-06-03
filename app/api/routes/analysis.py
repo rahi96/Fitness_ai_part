@@ -32,13 +32,16 @@ from app.schemas.improvement_plan import (
     OptimalDistribution,
 )
 from app.services.metrics_engine import compute_metrics, build_achievements
-from app.services.openai_service import render_analysis_text
 from app.services.analysis_cache_service import analysis_cache_service
 from app.config import OPENAI_API_KEY, MODEL_NAME
 from app.utils.prompt import (
+    TRAINING_ANALYSIS_SYSTEM_PROMPT,
+    TRAINING_ANALYSIS_USER_PROMPT,
     RACE_ANALYSIS_SYSTEM_PROMPT,
     RACE_ANALYSIS_USER_PROMPT,
+    TRAINING_INSIGHTS_SYSTEM_PROMPT,
     TRAINING_INSIGHTS_USER_PROMPT,
+    IMPROVEMENT_PLAN_SYSTEM_PROMPT,
     IMPROVEMENT_PLAN_USER_PROMPT,
 )
 
@@ -63,41 +66,21 @@ async def get_training_analysis(payload: TrainingData):
     plan_title = "Training Insights: Half Marathon Build-Up"
     timeframe = f"{data.get('analysis_period', {}).get('weeks', 12)}-week analysis leading to {date.today():%B %d, %Y}"
 
-    narrative = (
-        "Your build showed excellent progression with steady volume increases, "
-        "balanced intensity distribution, and strong recovery management. Peak fitness "
-        "was achieved in the final phase—perfectly timed for your race."
+    user_prompt = TRAINING_ANALYSIS_USER_PROMPT.format(
+        athlete_profile=json.dumps(data.get('athlete_profile', {}), indent=2),
+        training_data=json.dumps(data, indent=2),
+        metrics=json.dumps(metrics, indent=2),
+        achievements=json.dumps(achievements_raw, indent=2),
     )
 
-    summary_text = render_analysis_text(
-        plan_title=plan_title,
-        timeframe=timeframe,
-        narrative=narrative,
-        metrics=metrics,
-        achievements=achievements_raw,
-    )
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
 
-    summary = TrainingSummary(
-        headline="Excellent Training Block",
-        narrative=summary_text,
-        metrics=[
-            AnalysisMetric(label="Easy Running", value=metrics["easy_running"]),
-            AnalysisMetric(label="Weekly Growth", value=metrics["weekly_growth"]),
-            AnalysisMetric(label="Training Performance", value=metrics["training_performance"]),
-        ],
-    )
+    parsed = _query_openai_response(TRAINING_ANALYSIS_SYSTEM_PROMPT, user_prompt)
+    if not parsed or not parsed.get('plan_title') or not parsed.get('timeframe') or not parsed.get('summary') or not parsed.get('achievements'):
+        raise HTTPException(status_code=500, detail="OpenAI did not return valid training analysis output.")
 
-    achievements = [
-        AnalysisAchievement(title=item["title"], detail=item["detail"])
-        for item in achievements_raw
-    ]
-
-    response = TrainingAnalysisResponse(
-        plan_title=plan_title,
-        timeframe=timeframe,
-        summary=summary,
-        achievements=achievements,
-    )
+    response = TrainingAnalysisResponse(**parsed)
     analysis_cache_service.store_response(
         user_id=payload.user_id,
         cache_type="training_analysis",
@@ -137,6 +120,38 @@ def _parse_json_content(content: str) -> dict:
     return json.loads(cleaned)
 
 
+def _query_openai_response(system_prompt: str, user_prompt: str) -> dict:
+    """Call OpenAI and return parsed JSON output, or empty dict on failure."""
+    if not OPENAI_API_KEY:
+        return {}
+
+    for model_kwargs in (
+        {"response_format": {"type": "json_object"}},
+        None,
+    ):
+        try:
+            llm_args = {
+                "api_key": OPENAI_API_KEY,
+                "model": MODEL_NAME,
+                "temperature": 0.1,
+            }
+            if model_kwargs is not None:
+                llm_args["model_kwargs"] = model_kwargs
+            llm = ChatOpenAI(**llm_args)
+            ai_message = llm.invoke(
+                [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ]
+            )
+            parsed = _parse_json_content(ai_message.content)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            continue
+    return {}
+
+
 @router.post("/ai/race-analysis", response_model=RaceAnalysisResponse)
 async def ai_race_analysis(payload: RaceAnalysisRequest):
     request_payload = payload.model_dump(mode="json")
@@ -147,9 +162,6 @@ async def ai_race_analysis(payload: RaceAnalysisRequest):
     )
     if cached:
         return RaceAnalysisResponse(**cached)
-
-    if not OPENAI_API_KEY:
-        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
 
     profile = payload.athlete_profile
     training_summary = payload.training_summary
@@ -165,40 +177,12 @@ async def ai_race_analysis(payload: RaceAnalysisRequest):
         performance_predictions=json.dumps(performance_predictions, indent=2),
     )
 
-    parsed = {}
-    # First attempt: structured JSON output
-    try:
-        llm_json = ChatOpenAI(
-            api_key=OPENAI_API_KEY,
-            model=MODEL_NAME,
-            temperature=0.1,
-            model_kwargs={"response_format": {"type": "json_object"}},
-        )
-        ai_message = llm_json.invoke(
-            [
-                {"role": "system", "content": RACE_ANALYSIS_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ]
-        )
-        parsed = _parse_json_content(ai_message.content)
-    except Exception:
-        # Fallback without enforced JSON
-        try:
-            llm_plain = ChatOpenAI(
-                api_key=OPENAI_API_KEY,
-                model=MODEL_NAME,
-                temperature=0.1,
-            )
-            ai_message = llm_plain.invoke(
-                [
-                    {"role": "system", "content": RACE_ANALYSIS_SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ]
-            )
-            parsed = _parse_json_content(ai_message.content)
-        except Exception as exc:
-            # Final fallback: empty parsed to use defaults
-            parsed = {}
+    if not OPENAI_API_KEY:
+        raise HTTPException(status_code=500, detail="OPENAI_API_KEY is not set.")
+
+    parsed = _query_openai_response(RACE_ANALYSIS_SYSTEM_PROMPT, user_prompt)
+    if not parsed or not parsed.get("race_summary") or not parsed.get("training_analysis") or not parsed.get("recommendations"):
+        raise HTTPException(status_code=500, detail="OpenAI did not return valid race analysis output.")
 
     response = _build_race_analysis_response(
         parsed=parsed,
@@ -238,37 +222,9 @@ async def ai_training_insights(payload: TrainingInsightsRequest):
         training_context=json.dumps(payload.training_context, indent=2),
     )
 
-    parsed = {}
-    try:
-        llm_json = ChatOpenAI(
-            api_key=OPENAI_API_KEY,
-            model=MODEL_NAME,
-            temperature=0.1,
-            model_kwargs={"response_format": {"type": "json_object"}},
-        )
-        ai_message = llm_json.invoke(
-            [
-                {"role": "system", "content": RACE_ANALYSIS_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ]
-        )
-        parsed = _parse_json_content(ai_message.content)
-    except Exception:
-        try:
-            llm_plain = ChatOpenAI(
-                api_key=OPENAI_API_KEY,
-                model=MODEL_NAME,
-                temperature=0.1,
-            )
-            ai_message = llm_plain.invoke(
-                [
-                    {"role": "system", "content": RACE_ANALYSIS_SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ]
-            )
-            parsed = _parse_json_content(ai_message.content)
-        except Exception:
-            parsed = {}
+    parsed = _query_openai_response(TRAINING_INSIGHTS_SYSTEM_PROMPT, user_prompt)
+    if not parsed or not parsed.get("strengths") or not parsed.get("achievements"):
+        raise HTTPException(status_code=500, detail="OpenAI did not return valid training insights output.")
 
     strengths = []
     for item in parsed.get("strengths", []):
@@ -285,27 +241,8 @@ async def ai_training_insights(payload: TrainingInsightsRequest):
                 )
             )
 
-    # If model returns nothing, provide minimal placeholders
-    if not strengths:
-        strengths.append(
-            StrengthInsight(
-                title="Training Consistency",
-                insight="Insight missing from model; review completion rate and load balance.",
-            )
-        )
-    if not achievements:
-        # Fallback: derive achievements similar to /training/analysis using existing metrics engine
-        data_for_metrics = payload.training_context or {}
-        metrics = compute_metrics(data_for_metrics)
-        achievements_raw = build_achievements(data_for_metrics, metrics)
-        for item in achievements_raw:
-            achievements.append(
-                Achievement(
-                    title=item.get("title", "Achievement"),
-                    value="",
-                    detail=item.get("detail", ""),
-                )
-            )
+    if not strengths or not achievements:
+        raise HTTPException(status_code=500, detail="OpenAI returned incomplete training insights output.")
 
     response = TrainingInsightsResponse(
         strengths=strengths,
@@ -342,46 +279,13 @@ async def ai_improvement_plan(payload: ImprovementPlanRequest):
         training_context=json.dumps(payload.training_context, indent=2),
     )
 
-    parsed = {}
-    try:
-        llm_json = ChatOpenAI(
-            api_key=OPENAI_API_KEY,
-            model=MODEL_NAME,
-            temperature=0.1,
-            model_kwargs={"response_format": {"type": "json_object"}},
-        )
-        ai_message = llm_json.invoke(
-            [
-                {"role": "system", "content": RACE_ANALYSIS_SYSTEM_PROMPT},
-                {"role": "user", "content": user_prompt},
-            ]
-        )
-        parsed = _parse_json_content(ai_message.content)
-    except Exception:
-        try:
-            llm_plain = ChatOpenAI(
-                api_key=OPENAI_API_KEY,
-                model=MODEL_NAME,
-                temperature=0.1,
-            )
-            ai_message = llm_plain.invoke(
-                [
-                    {"role": "system", "content": RACE_ANALYSIS_SYSTEM_PROMPT},
-                    {"role": "user", "content": user_prompt},
-                ]
-            )
-            parsed = _parse_json_content(ai_message.content)
-        except Exception:
-            parsed = {}
+    parsed = _query_openai_response(IMPROVEMENT_PLAN_SYSTEM_PROMPT, user_prompt)
+    if not parsed or not parsed.get("optimal_distribution") or not parsed.get("areas_for_improvement") or not parsed.get("next_steps"):
+        raise HTTPException(status_code=500, detail="OpenAI did not return valid improvement plan output.")
 
     optimal_raw = parsed.get("optimal_distribution") or {}
     optimal_title = _normalize_optimal_title(str(optimal_raw.get("title") or ""))
-    optimal_detail = str(
-        optimal_raw.get(
-            "detail",
-            "Based on your training zones, your distribution supports aerobic development and fatigue management.",
-        )
-    )
+    optimal_detail = str(optimal_raw.get("detail") or "")
     optimal = OptimalDistribution(
         title=optimal_title,
         detail=optimal_detail,
@@ -408,15 +312,8 @@ async def ai_improvement_plan(payload: ImprovementPlanRequest):
                 )
             )
 
-    if not areas:
-        areas.append(
-            ImprovementItem(
-                title="Recovery Between High-Intensity Sessions",
-                analysis="AI output missing; review spacing of hard sessions to avoid stacking fatigue.",
-                recommendation="Allow at least 48 hours between hard workouts or pair with easy/recovery days.",
-            )
-        )
-    if not goals:
+    if not areas or not goals:
+        raise HTTPException(status_code=500, detail="OpenAI returned incomplete improvement plan output.")
         goals.append(
             GoalItem(
                 title="Maintain Your Fitness",

@@ -24,6 +24,125 @@ Rules:
 - Avoid medical claims.
 """
 
+TRAINING_ANALYSIS_SYSTEM_PROMPT = """
+You are an AI endurance training analyst.
+
+Rules:
+- Use only the supplied athlete and training data.
+- Output must be JSON only, following the exact schema.
+- Keep the voice concise, evidence-based, and coaching-oriented.
+- Include clear, actionable insight in every section.
+"""
+
+TRAINING_ANALYSIS_USER_PROMPT = """
+Using the following athlete profile, training data, computed metrics, and achievements,
+generate a training analysis summary in structured JSON format.
+
+Rules:
+- Use the metrics exactly as provided.
+- Provide a headline plus narrative summary.
+- Include three metrics with labels, numeric values, and unit "%".
+- Provide 4-5 achievements with title and detail.
+- Keep the narrative concise, coach-like, and focused on training adaptations.
+
+ATHLETE PROFILE
+{athlete_profile}
+
+TRAINING DATA
+{training_data}
+
+COMPUTED METRICS
+{metrics}
+
+ACHIEVEMENTS
+{achievements}
+
+OUTPUT FORMAT (JSON ONLY):
+{{
+  "plan_title": "",
+  "timeframe": "",
+  "summary": {{
+    "headline": "",
+    "narrative": "",
+    "metrics": [{{"label": "", "value": 0.0, "unit": "%"}}]
+  }},
+  "achievements": [{{"title": "", "detail": ""}}]
+}}
+"""
+
+TRAINING_INSIGHTS_SYSTEM_PROMPT = """
+You are an AI training insights analyst.
+
+Rules:
+- Use only the supplied athlete and training data.
+- Output must be JSON only.
+- Provide 3-5 strengths and 4-6 achievements.
+- Keep language professional, concise, and actionable.
+"""
+
+TRAINING_INSIGHTS_USER_PROMPT = """
+Using the following athlete profile, training data, race analysis, performance predictions, and training context,
+generate an "AI Training Insights" report in structured JSON format.
+
+ATHLETE PROFILE
+{athlete_profile}
+
+TRAINING SUMMARY
+{training_summary}
+
+RACE ANALYSIS
+{race_analysis}
+
+PERFORMANCE PREDICTIONS
+{performance_predictions}
+
+TRAINING CONTEXT
+{training_context}
+
+OUTPUT FORMAT (JSON ONLY):
+{{
+  "strengths": [],
+  "achievements": []
+}}
+"""
+
+IMPROVEMENT_PLAN_SYSTEM_PROMPT = """
+You are an AI improvement planning specialist.
+
+Rules:
+- Use only the supplied athlete and training data.
+- Output must be JSON only.
+- Provide an optimal distribution section, a set of improvement areas, and future goals.
+- Keep tone coach-like, concise, and actionable.
+"""
+
+IMPROVEMENT_PLAN_USER_PROMPT = """
+Using the following athlete profile, training data, race analysis, performance predictions, and training context,
+generate an "AI Improvement Plan" in structured JSON format.
+
+ATHLETE PROFILE
+{athlete_profile}
+
+TRAINING SUMMARY
+{training_summary}
+
+RACE ANALYSIS
+{race_analysis}
+
+PERFORMANCE PREDICTIONS
+{performance_predictions}
+
+TRAINING CONTEXT
+{training_context}
+
+OUTPUT FORMAT (JSON ONLY):
+{{
+  "optimal_distribution": {{}},
+  "areas_for_improvement": [],
+  "next_steps": []
+}}
+"""
+
 RACE_ANALYSIS_USER_PROMPT = """
 Using the following athlete profile, training data, and race outcome,
 generate an "AI Race Analysis & Performance Summary" in structured JSON format.
