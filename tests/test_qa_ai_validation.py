@@ -3,7 +3,7 @@ QA Test Suite: Validate that all API responses are AI-generated (not fallback)
 and that responses are contextually relevant to the input data.
 
 Test Strategy:
-=============
+-------------
 1. AI-powered endpoints (OpenAI): Verify the response does NOT match the
    hardcoded fallback text. Different input data must produce different output.
 2. Rule-based endpoints (computed): Verify the response contains values
